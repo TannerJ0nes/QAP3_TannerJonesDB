@@ -1,0 +1,6 @@
+1. As a user, I can view a webpage listing all the video games from the database.
+2. As a staff member, I can add a new video game to the inventory.
+3. As an admin, I can update the details of an existing video game in the database.
+4. As a user, I can search for a specific video game by its title.
+5. As a staff member, I can delete a video game from the inventory.
+6. As a user, I can see a detailed view of a video game, including its description and release date.
