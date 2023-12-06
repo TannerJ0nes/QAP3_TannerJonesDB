@@ -1,19 +1,17 @@
 // src/server/routes/views.js
 const express = require('express');
 const router = express.Router();
+const database = require('../dal/database');
 
-// Mock data array for testing view routes
-const mockGameData = [
-  { id: 1, title: 'Game A', platform: 'PS4' },
-  { id: 2, title: 'Game B', platform: 'Xbox One' },
-  // Add more mock data as needed
-];
-
-// View routes
-router.get('/', (req, res) => {
-  res.render('index', { games: mockGameData });
+router.get('/', async (req, res) => {
+  try {
+    const games = await database.getAllGames();
+    console.log('Games sent to views route:', games); // Add this line
+    res.render('index', { games }); // Ensure correct EJS view name
+  } catch (error) {
+    console.error('Error in /views:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
-
-// Add other view routes as needed
 
 module.exports = router;

@@ -7,13 +7,6 @@ const port = 3000;
 app.set('view engine', 'ejs');
 app.set('views', 'src/client/views');
 
-// Configure middleware for parsing request bodies
-app.use(express.urlencoded({ extended: true }));
-
-// Configure method-override middleware
-const methodOverride = require('method-override');
-app.use(methodOverride('_method'));
-
 // Configure static files directory
 app.use(express.static('src/client/public'));
 

@@ -1,17 +1,18 @@
 // src/server/routes/api.js
 const express = require('express');
 const router = express.Router();
+const database = require('../dal/database'); // Ensure correct path
 
-// Mock data array for testing API routes
-const mockGameData = [
-  { id: 1, title: 'Game A', platform: 'PS4' },
-  { id: 2, title: 'Game B', platform: 'Xbox One' },
-  // Add more mock data as needed
-];
-
-// API routes
-router.get('/games', (req, res) => {
-  res.json(mockGameData);
+// Define API routes
+router.get('/games', async (req, res) => {
+  try {
+    const games = await database.getAllGames();
+    console.log('Games sent to client:', games); // Add this line
+    res.json(games);
+  } catch (error) {
+    console.error('Error in /api/games:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 // Add other API routes as needed
