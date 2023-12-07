@@ -1,5 +1,9 @@
--- Creating the Developers table
-CREATE TABLE developers (
-  developer_id SERIAL PRIMARY KEY,
-  developer_name VARCHAR(100) NOT NULL
+-- Creating the Video Games table with a foreign key
+CREATE TABLE video_games (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  genre VARCHAR(50),
+  platform VARCHAR(50),
+  completed BOOLEAN DEFAULT false,
 );
+
