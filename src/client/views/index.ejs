@@ -2,15 +2,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Head content here -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Game Inventory</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 20px;
+    }
+  
+    h1 {
+      color: #4285f4;
+    }
+  
+    form, ul {
+      margin-top: 20px;
+    }
+  
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+  
+    input, button {
+      margin-bottom: 10px;
+      padding: 8px;
+      width: 200px;
+      box-sizing: border-box;
+    }
+  
+    button {
+      background-color: #4285f4;
+      color: #fff;
+      cursor: pointer;
+    }
+  
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+  
+    li {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  
+    button[data-id] {
+      margin-left: 10px;
+    }
+  
+    li.completed {
+      text-decoration: line-through;
+    }
+  </style>
+  
 </head>
 <body>
   <h1>Video Game Inventory</h1>
 
-  <ul>
-    <% games.forEach(game => { %>
-      <li><%= game.title %> - <%= game.platform %></li>
-    <% }); %>
+  <!-- New form for adding games -->
+  <form id="addGameForm">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required>
+
+    <label for="platform">Platform:</label>
+    <input type="text" id="platform" name="platform" required>
+
+    <button type="submit">Add Game</button>
+  </form>
+
+  <!-- Form for editing games -->
+  <form id="editGameForm" style="display: none;">
+    <label for="newTitle">New Title:</label>
+    <input type="text" id="newTitle" name="newTitle" required>
+
+    <label for="newPlatform">New Platform:</label>
+    <input type="text" id="newPlatform" name="newPlatform" required>
+
+    <button type="button" onclick="submitEdit()">Save Changes</button>
+    <button type="button" onclick="cancelEdit()">Cancel</button>
+  </form>
+
+  <!-- List for displaying games -->
+  <ul id="gameList">
+    <!-- Rendered games will go here -->
   </ul>
+
+  <!-- Include this script in your HTML file -->
+  <script>
+    // Define editGame function
+    window.editGame = function (gameId) {
+      const game = getGameById(gameId);
+  
+      // Check if the game is found
+      if (!game) {
+        console.error('Error editing game: Game not found');
+        return;
+      }
+  
+      const editForm = document.getElementById('editGameForm');
+      const newTitleInput = document.getElementById('newTitle');
+      const newPlatformInput = document.getElementById('newPlatform');
+  
+      // Reset the form inputs
+      newTitleInput.value = '';
+      newPlatformInput.value = '';
+  
+      // Display the edit form
+      editForm.style.display = 'block';
+  
+      // Set up the form inputs with current values
+      newTitleInput.value = game.title;
+      newPlatformInput.value = game.platform;
+  
+      // Set the data-id attribute for the edit button
+      document.getElementById('editGameForm').dataset.gameId = gameId;
+    };
+  
+    // Add this script to fetch and display games and handle form submission
+    async function fetchGames() {
+      try {
+        const response = await fetch('/api/games');
+        const games = await response.json();
+  
+        // Clear the existing list
+        const gameList = document.getElementById('gameList');
+        gameList.innerHTML = '';
+  
+        // Populate the list with games
+        games.forEach(game => {
+          const listItem = document.createElement('li');
+          listItem.innerHTML = `
+            ${game.title} - ${game.platform}
+            <button type="button" data-id="${game.id}" onclick="editGame('${game.id}')">Edit</button>
+            <button onclick="deleteGame('${game.id}')">Delete</button>
+            <button onclick="completeGame('${game.id}')">Mark as Completed</button>
+          `;
+          gameList.appendChild(listItem);
+        });
+      } catch (error) {
+        console.error('Error fetching games:', error);
+      }
+    }
+  
+    // Handle form submission
+document.getElementById('addGameForm').addEventListener('submit', async function (event) {
+  event.preventDefault();
+
+  const titleInput = document.getElementById('title');
+  const platformInput = document.getElementById('platform');
+
+  const title = titleInput.value.trim();
+  const platform = platformInput.value.trim();
+
+  // Log the payload
+  console.log('Add Game Payload:', { title, platform });
+
+  try {
+    const response = await fetch('/api/games', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title, platform }),
+    });
+
+    // Rest of the code...
+  } catch (error) {
+    console.error('Error adding game:', error.message);
+  }
+});
+
+
+  
+    // Function to submit the edited game
+    window.submitEdit = async function () {
+      const gameId = document.getElementById('editGameForm').dataset.gameId;
+      const newTitleInput = document.getElementById('newTitle');
+      const newPlatformInput = document.getElementById('newPlatform');
+  
+      const newTitle = newTitleInput.value.trim();
+      const newPlatform = newPlatformInput.value.trim();
+  
+      // Ensure that newTitle and newPlatform are not empty
+      if (!newTitle || !newPlatform) {
+        console.error('Error editing game: Title and Platform cannot be empty');
+        return;
+      }
+  
+      try {
+        const response = await fetch(`/api/games/${gameId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: parseInt(gameId), title: newTitle, platform: newPlatform }),
+        });
+  
+        // Log the response
+        console.log('Edit Response:', await response.json());
+  
+        if (!response.ok) {
+          throw new Error(`Failed to update game: ${response.statusText}`);
+        }
+  
+        // Hide the edit form after successful submission
+        document.getElementById('editGameForm').style.display = 'none';
+  
+        // Fetch and display games after editing a game
+        await fetchGames();
+      } catch (error) {
+        console.error('Error editing game:', error.message);
+      }
+    };
+  
+    // Function to cancel the edit operation
+    window.cancelEdit = function () {
+      document.getElementById('editGameForm').style.display = 'none';
+    };
+  
+    // Function to handle deleting a game
+    window.deleteGame = async function (gameId) {
+      const confirmDelete = confirm('Are you sure you want to delete this game?');
+      if (!confirmDelete) return;
+  
+      try {
+        const response = await fetch(`/api/games/${gameId}`, {
+          method: 'DELETE',
+        });
+  
+        // Fetch and display games after deleting a game
+        await fetchGames();
+      } catch (error) {
+        console.error('Error deleting game:', error);
+      }
+    };
+  
+    // Function to handle marking a game as completed
+    // Add this code inside the script tag in your HTML file
+// Function to handle marking a game as completed
+window.completeGame = async function (gameId) {
+  try {
+    const response = await fetch(`/api/games/${gameId}/complete`, {
+      method: 'PATCH', // Use PATCH method to update completion status
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to mark game as completed: ${response.statusText}`);
+    }
+
+    console.log(`Game with ID ${gameId} marked as completed.`);
+
+    // Update the UI to reflect the completion status
+    const completedButton = document.querySelector(`button[data-id="${gameId}"][onclick^="completeGame"]`);
+    
+    if (completedButton) {
+      const listItem = completedButton.closest('li');
+      if (listItem) {
+        listItem.style.textDecoration = 'line-through'; // Add strikethrough style to the list item
+      } else {
+        console.error('Error updating UI: List item not found.');
+      }
+    } else {
+      console.error('Error updating UI: Completed button not found.');
+    }
+  } catch (error) {
+    console.error('Error marking game as completed:', error);
+  }
+};
+
+
+
+
+
+  
+    // Helper function to get the game details by ID
+    function getGameById(gameId) {
+      const gameList = document.getElementById('gameList');
+      const games = Array.from(gameList.children).map(item => {
+        const [title, platform] = item.textContent.split('-').map(text => text.trim());
+        const id = item.querySelector('button').dataset.id; // Change this line to dataset.id
+        return { id, title, platform };
+      });
+  
+      return games.find(game => game.id === gameId);
+    }
+  
+    // Call fetchGames when the page loads
+    window.onload = function () {
+      fetchGames();
+    };
+  </script>
+  
 </body>
 </html>

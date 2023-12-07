@@ -16,7 +16,7 @@ const viewsRoutes = require('./routes/views');
 
 app.use('/api', apiRoutes);
 app.use('/', viewsRoutes);
-
+app.use(express.json());
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
